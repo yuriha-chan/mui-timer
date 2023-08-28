@@ -87,7 +87,8 @@ class SettingsDialog extends Component {
 						  <FormControl fullWidth>
 						  <InputLabel id="select-label-sound">音</InputLabel>
 						  <Select labelId="select-label-sound" id="select-sound" value={this.state.sound} label="Sound" onChange={this.changeSound} >
-						    <MenuItem value={'none'}>なし</MenuItem>
+						    <MenuItem value={'none'}>(なし)</MenuItem>
+						    <MenuItem value={'nc285196.flac'}>ぴこん</MenuItem>
 						  </Select>
 						  </FormControl>
 						</div>

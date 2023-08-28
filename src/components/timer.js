@@ -48,10 +48,11 @@ class Timer extends Component {
 		const savedStartTime = localStorage.getItem('timer:' + props.name + ":startTime");
 		const savedAccumulatedTime = localStorage.getItem('timer:' + props.name + ":accumulatedTime");
 		const savedIsRunning = localStorage.getItem('timer:' + props.name + ':isRunning');
-		const savedTitle = localStorage.getItem('timer:' + props.name + ':isTitle');
+		const savedTitle = localStorage.getItem('timer:' + props.name + ':title');
 		const savedCountDown = localStorage.getItem('timer:' + props.name + ':countDown');
 		const savedMaxTime = localStorage.getItem('timer:' + props.name + ':maxTime');
 		const savedSound = localStorage.getItem('timer:' + props.name + ':sound');
+		const savedAudioPlayed = localStorage.getItem('timer:' + props.name + ':audioPlayed');
 		
 		this.state = {
 			displayTime: savedDisplayTime ? parseFloat(savedDisplayTime) : 0,
@@ -63,6 +64,7 @@ class Timer extends Component {
 			countDown: savedCountDown === "true",
 			sound: savedSound ? savedSound : 'none',
 			settingsOpen: false,
+			audioPlayed: savedAudioPlayed === "true",
 		};
 
 		if (this.state.isRunning) {
@@ -79,14 +81,23 @@ class Timer extends Component {
 		localStorage.setItem('timer:' + this.props.name + ":startTime", this.state.startTime);
 		localStorage.setItem('timer:' + this.props.name + ":accumulatedTime", this.state.accumulatedTime);
 		localStorage.setItem('timer:' + this.props.name + ":isRunning", '' + this.state.isRunning);
+		localStorage.setItem('timer:' + this.props.name + ":title", '' + this.state.title);
 		localStorage.setItem('timer:' + this.props.name + ":countDown", '' + this.state.countDown);
 		localStorage.setItem('timer:' + this.props.name + ":maxTime", '' + this.state.maxTime);
 		localStorage.setItem('timer:' + this.props.name + ":sound", '' + this.state.sound);
+		localStorage.setItem('timer:' + this.props.name + ":audioPlayed", '' + this.state.audioPlayed);
+	}
+
+	playAudio() {
+		if (this.state.sound === 'none' || this.state.audioPlayed || (new Date().getTime() - this.state.startTime + this.state.accumulatedTime) < this.state.maxTime) return;
+		new Audio("/assets/sounds/" + this.state.sound).play();
+		this.setState({audioPlayed: true});
 	}
 
 	startTimer = () => { if (!this.state.isRunning) {
 			this.setState({ isRunning: true, startTime: new Date().getTime() });
 			this.intervalRef = setInterval(() => {
+				this.playAudio();
 				this.setState(prevState => ({
 				displayTime: (new Date().getTime() - this.state.startTime + this.state.accumulatedTime),
 				}));
@@ -105,6 +116,7 @@ class Timer extends Component {
 			displayTime: 0,
 			accumulatedTime: 0,
 			isRunning: false,
+			audioPlayed: false,
 		});
 	};
 
@@ -128,13 +140,13 @@ class Timer extends Component {
 		return (
 			<div style={{ display: 'flex', margin: '10px' }}>
 			<ThemeProvider theme={theme}>	
-			<div style={{ textAlign: 'center', padding: '10px', background: this.state.isRunning ? "#ccc0aa" : "#eeeef4", width: '90%' }} onClick={this.toggleTimer} onDoubleClick={this.resetTimer}>
+			<div style={{ textAlign: 'center', padding: '6px', background: this.state.isRunning ? "#ccc0aa" : "#eeeef4", width: '90%' }} onClick={this.toggleTimer} onDoubleClick={this.resetTimer}>
 			<h2>{ this.state.title }</h2>
 			<LinearProgress color={this.props.color} variant="determinate" value={this.state.displayTime / this.state.maxTime * 100} style={{ width: '80%', margin: '0 auto' }} sx={{height: 20}} />
 			<h2 style={{ fontFamily: "Roboto" }}>{formatTime(this.state.countDown ? Math.max(0, this.state.maxTime - this.state.displayTime) : this.state.displayTime)}</h2>
 			</div>
 			<Button color="blueGrey_light" variant="contained" style={{ width: '10%' }} onClick={this.openSettings} ><SettingsIcon/></Button>
-			<SettingsDialog color={ this.props.color } title={ this.state.title } maxTime={ this.state.maxTime } countDown={ this.state.countDown } sound={ 'none' } onSave={ this.saveSettings } onClose={ () => this.setState({ settingsOpen: false }) } open={ this.state.settingsOpen } />
+			<SettingsDialog color={ this.props.color } title={ this.state.title } maxTime={ this.state.maxTime } countDown={ this.state.countDown } sound={ this.state.sound } onSave={ this.saveSettings } onClose={ () => this.setState({ settingsOpen: false }) } open={ this.state.settingsOpen } />
 			</ThemeProvider>
 			</div>
 		);
